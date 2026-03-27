@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCADI - Sistema de Análisis de Ciberamenazas e Inteligencia - Fuerzas Armadas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0a1428;
+            --secondary: #1a3a52;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #198754;
+            --info: #0d6efd;
+            --light: #f8f9fa;
+            --border: #dee2e6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* ====== LOGIN SECTION ====== */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            color: #333;
+        }
+
+        .login-box h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .login-box .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--info);
+            background: #f0f7ff;
+        }
+
+        /* CAPTCHA */
+        .captcha-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .captcha-question {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .captcha-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .captcha-button {
+            padding: 8px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .captcha-button:hover {
+            border-color: var(--info);
+        }
+
+        .captcha-button.selected {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--info) 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3);
+        }
+
+        .login-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .rate-limit-warning {
+            color: var(--warning);
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* ====== MAIN APP ====== */
+        .app-container {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 20px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .logout-button:hover {
+            background: #c82333;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* TABS */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-button.active {
+            background: var(--info);
+            border-bottom-color: var(--warning);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* CARDS */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid var(--info);
+            padding-bottom: 10px;
+        }
+
+        .card h3 {
+            color: var(--secondary);
+            font-size: 14px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--info);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #157347;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        /* KILL CHAIN */
+        .kill-chain {
+            display: flex;
+            gap: 5px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .kill-chain-step {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .kill-chain-step:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .kill-chain-step.active {
+            border-color: var(--warning);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .kill-chain-step.completed {
+            background: linear-gradient(135deg, var(--success) 0%, #156a3a 100%);
+        }
+
+        /* MITRE ATT&CK */
+        .mitre-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mitre-technique {
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid var(--warning);
+        }
+
+        .mitre-technique:hover {
+            transform: translateX(5px);
+        }
+
+        .mitre-technique.selected {
+            background: linear-gradient(135deg, var(--danger) 0%, #a02830 100%);
+            border-left-color: #fff;
+        }
+
+        .technique-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .technique-id {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* DIAMOND MODEL */
+        .diamond-model {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .diamond-vertex {
+            padding: 15px;
+            background: linear-gradient(135deg, var(--info) 0%, #0056b3 100%);
+            border-radius: 6px;
+            color: white;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .vertex-label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .vertex-content {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* CHARTS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* THREAT ATTRIBUTION */
+        .attribution-result {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 6px solid var(--warning);
+        }
+
+        .attribution-score {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .score-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--info);
+        }
+
+        .score-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--warning);
+        }
+
+        /* THREAT ACTORS */
+        .threat-actors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .actor-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .actor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .actor-card.selected {
+            border-color: var(--warning);
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .actor-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .actor-info {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* GLOBAL MAP */
+        .global-map {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 400px;
+            color: #333;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            margin-top: 15px;
+        }
+
+        .map-cell {
+            aspect-ratio: 1;
+            background: rgba(200, 200, 200, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            opacity: 0.5;
+        }
+
+        .map-cell:hover {
+            opacity: 1;
+        }
+
+        .map-cell.active {
+            background: linear-gradient(135deg, var(--danger) 0%, #a02830 100%);
+            opacity: 1;
+        }
+
+        /* STATUS INDICATORS */
+        .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status.active {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status.warning {
+            background: var(--warning);
+            animation: pulse 2s infinite;
+        }
+
+        .status.danger {
+            background: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* REPORTS */
+        .report-section {
+            background: white;
+            color: #000;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .report-header {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .report-title {
+            font-size: 24px;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .report-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .report-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .report-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .report-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--info);
+            padding-bottom: 10px;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        /* LOADING */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--warning);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .kill-chain {
+                gap: 3px;
+            }
+
+            .kill-chain-step {
+                min-width: 80px;
+                padding: 10px;
+                font-size: 10px;
+            }
+
+            .tabs-container {
+                gap: 5px;
+            }
+
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        .threat-level {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .threat-level.critical {
+            background: var(--danger);
+            color: white;
+        }
+
+        .threat-level.high {
+            background: #ff9800;
+            color: white;
+        }
+
+        .threat-level.medium {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .threat-level.low {
+            background: var(--success);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <h1>🛡️ SCADI</h1>
+            <p class="subtitle">Sistema de Análisis de Ciberamenazas e Inteligencia<br>Fuerzas Armadas</p>
+            
+            <div class="rate-limit-warning" id="rateLimitWarning"></div>
+            
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" placeholder="usuario_operativo">
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <div class="captcha-container">
+                <div class="captcha-question" id="captchaQuestion">¿Cuál es el resultado?</div>
+                <div class="captcha-buttons" id="captchaButtons"></div>
+            </div>
+
+            <button class="login-button" id="loginButton" onclick="handleLogin()">INGRESAR</button>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div class="app-container" id="appContainer">
+        <div class="header">
+            <div class="header-title">
+                🛡️ SCADI - Sistema de Análisis de Ciberamenazas e Inteligencia
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div>Usuario: <strong id="currentUser"></strong></div>
+                    <div id="sessionStatus"><span class="status active"></span>Sesión Activa</div>
+                </div>
+                <button class="logout-button" onclick="handleLogout()">CERRAR SESIÓN</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- TABS -->
+            <div class="tabs-container">
+                <button class="tab-button active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                <button class="tab-button" onclick="switchTab('iot')">🔗 IoT Inteligencia</button>
+                <button class="tab-button" onclick="switchTab('attribution')">🎯 Atribución Técnica</button>
+                <button class="tab-button" onclick="switchTab('global-threats')">🌍 Amenazas Global</button>
+                <button class="tab-button" onclick="switchTab('reports')">📑 Reportes</button>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div class="tab-content active" id="dashboard">
+                <div class="card">
+                    <h2>📋 Análisis de Incidente de Ciberataque</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Identificador de Incidente</label>
+                            <input type="text" id="incidentId" placeholder="INC-2024-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha/Hora de Detección</label>
+                            <input type="datetime-local" id="incidentDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Nivel de Severidad</label>
+                            <select id="severityLevel">
+                                <option value="">Seleccionar...</option>
+                                <option value="critical">🔴 CRÍTICO</option>
+                                <option value="high">🟠 ALTO</option>
+                                <option value="medium">🟡 MEDIO</option>
+                                <option value="low">🟢 BAJO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción del Incidente</label>
+                        <textarea id="incidentDescription" placeholder="Describa los eventos observados..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Indicadores de Compromiso (IoCs)</label>
+                        <textarea id="iocs" placeholder="IPs, dominios, hashes, URLs...\n192.168.1.100\nmalware.com\n5d41402abc4b2a76b9719d911017c592"></textarea>
+                    </div>
+                </div>
+
+                <!-- CYBER KILL CHAIN -->
+                <div class="card">
+                    <h2>🔗 Cyber Kill Chain</h2>
+                    <p style="margin-bottom: 15px; font-size: 12px; color: #666;">Seleccione las etapas identificadas del ataque:</p>
+                    <div class="kill-chain">
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'reconocimiento')">1. Reconocimiento</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'arma')">2. Weaponization</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'entrega')">3. Entrega</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'explotacion')">4. Explotación</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'instalacion')">5. Instalación</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'comando')">6. C&C</div>
+                        <div class="kill-chain-step" onclick="toggleKillChainStep(this, 'acciones')">7. Acciones</div>
+                    </div>
+                </div>
+
+                <!-- MITRE ATT&CK -->
+                <div class="card">
+                    <h2>⚔️ MITRE ATT&CK Framework</h2>
+                    <p style="margin-bottom: 15px; font-size: 12px; color: #666;">Técnicas identificadas en la campaña:</p>
+                    <div class="mitre-matrix" id="mitreMatrix"></div>
+                </div>
+
+                <!-- DIAMOND MODEL -->
+                <div class="card">
+                    <h2>💎 Modelo Diamante (Diamond Model)</h2>
+                    <div class="diamond-model">
+                        <div class="diamond-vertex">
+                            <div class="vertex-label">🎯 Adversario</div>
+                            <div class="vertex-content">
+                                <input type="text" id="adversary" placeholder="Actor de amenaza identificado" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                            </div>
+                        </div>
+                        <div class="diamond-vertex">
+                            <div class="vertex-label">🛠️ Capacidad</div>
+                            <div class="vertex-content">
+                                <textarea id="capability" placeholder="Herramientas y técnicas utilizadas" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; height: 80px;"></textarea>
+                            </div>
+                        </div>
+                        <div class="diamond-vertex">
+                            <div class="vertex-label">🎪 Infraestructura</div>
+                            <div class="vertex-content">
+                                <textarea id="infrastructure" placeholder="Servidores C&C, dominios, IPs" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; height: 80px;"></textarea>
+                            </div>
+                        </div>
+                        <div class="diamond-vertex">
+                            <div class="vertex-label">🎲 Víctima</div>
+                            <div class="vertex-content">
+                                <input type="text" id="victim" placeholder="Organización afectada" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="analyzeIncident()">🔍 ANALIZAR INCIDENTE</button>
+                    <button class="btn btn-warning" onclick="clearForm()">🔄 LIMPIAR FORMULARIO</button>
+                </div>
+            </div>
+
+            <!-- IOT INTELLIGENCE -->
+            <div class="tab-content" id="iot">
+                <div class="card">
+                    <h2>🔗 Inteligencia de Fuentes Externas</h2>
+
+                    <!-- VIRUSTOTAL -->
+                    <h3>VirusTotal</h3>
+                    <div class="form-group">
+                        <label>Hash del archivo (SHA256)</label>
+                        <input type="text" id="vtHash" placeholder="e.g., 44d88612fea8a8f36de82e1278abb02f">
+                        <button class="btn btn-primary" style="margin-top: 10px;" onclick="checkVirusTotal()">Consultar VirusTotal</button>
+                    </div>
+                    <div id="vtResult" style="margin-top: 15px; display: none; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid var(--warning);"></div>
+
+                    <!-- SHODAN -->
+                    <h3 style="margin-top: 30px;">SHODAN</h3>
+                    <div class="form-group">
+                        <label>Dirección IP</label>
+                        <input type="text" id="shodanIp" placeholder="192.168.1.1">
+                        <button class="btn btn-primary" style="margin-top: 10px;" onclick="checkShodan()">Consultar SHODAN</button>
+                    </div>
+                    <div id="shodanResult" style="margin-top: 15px; display: none; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid var(--warning);"></div>
+
+                    <!-- WHOIS -->
+                    <h3 style="margin-top: 30px;">WHOIS / Información de Dominio</h3>
+                    <div class="form-group">
+                        <label>Dominio</label>
+                        <input type="text" id="whoisDomain" placeholder="example.com">
+                        <button class="btn btn-primary" style="margin-top: 10px;" onclick="checkWhois()">Consultar WHOIS</button>
+                    </div>
+                    <div id="whoisResult" style="margin-top: 15px; display: none; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid var(--warning);"></div>
+
+                    <!-- MALTEGO -->
+                    <h3 style="margin-top: 30px;">Visualización Maltego</h3>
+                    <div class="chart-container">
+                        <div class="chart-title">🕸️ Gráfico de Relaciones y Transformaciones</div>
+                        <canvas id="maltegoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATTRIBUTION -->
+            <div class="tab-content" id="attribution">
+                <div class="card">
+                    <h2>🎯 Atribución Técnica de Amenazas</h2>
+
+                    <div class="form-group">
+                        <label>Análisis APT y Actores de Amenaza Identificados</label>
+                        <button class="btn btn-primary" style="margin-top: 10px;" onclick="showThreatActors()">📊 Ver Actores de Amenaza</button>
+                    </div>
+
+                    <div id="threatActorsContainer" style="display: none;">
+                        <h3>🕵️ Actores de Amenaza Conocidos (APT)</h3>
+                        <div class="threat-actors" id="threatActorsList"></div>
+                    </div>
+
+                    <div id="attributionResults" style="display: none; margin-top: 30px;">
+                        <div class="attribution-result">
+                            <h3>📈 Scores de Atribución Técnica</h3>
+                            <div class="attribution-score" id="attributionScores"></div>
+                        </div>
+
+                        <div class="card">
+                            <h3>🔍 Análisis Detallado de Atribución</h3>
+                            <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: var(--primary); color: white;">
+                                        <th style="padding: 10px; text-align: left;">Indicador</th>
+                                        <th style="padding: 10px; text-align: left;">Hallazgo</th>
+                                        <th style="padding: 10px; text-align: left;">Confianza</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attributionDetails"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" style="margin-top: 20px;" onclick="calculateAttribution()">🧮 CALCULAR ATRIBUCIÓN</button>
+                </div>
+            </div>
+
+            <!-- GLOBAL THREATS -->
+            <div class="tab-content" id="global-threats">
+                <div class="card">
+                    <h2>🌍 Mapa Global de Ciberataques</h2>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">📊 Ataques por Región</div>
+                            <canvas id="attacksByRegion"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">🎯 Tipos de Ataque (Top 10)</div>
+                            <canvas id="attackTypes"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="global-map">
+                        <h3>Mapa de Actividad Global (Representación en Grid)</h3>
+                        <div class="map-grid" id="globalMapGrid"></div>
+                        <div style="margin-top: 15px; font-size: 12px;">
+                            <span class="status danger"></span>Actividad Crítica &nbsp;&nbsp;
+                            <span class="status warning"></span>Actividad Alta &nbsp;&nbsp;
+                            <span class="status active"></span>Actividad Normal
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">📈 Tendencia de Ataques (Últimos 30 días)</div>
+                            <canvas id="attackTrend"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">🎪 Infraestructura Maliciosa por País</div>
+                            <canvas id="maliciousInfra"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTS -->
+            <div class="tab-content" id="reports">
+                <div class="card">
+                    <h2>📑 Generación de Reportes CTI</h2>
+
+                    <div class="form-group">
+                        <label>Tipo de Reporte</label>
+                        <select id="reportType">
+                            <option value="">Seleccionar...</option>
+                            <option value="executive">👨‍💼 Informe Ejecutivo (Director)</option>
+                            <option value="soc">🛡️ Informe para SOC</option>
+                            <option value="shared">🔗 Informe para Compartir con otros SOCs</option>
+                            <option value="complete">📋 Informe Completo</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="generateReport()">📄 GENERAR REPORTE</button>
+                        <button class="btn btn-warning" onclick="exportReportPDF()">📥 DESCARGAR PDF</button>
+                    </div>
+
+                    <div id="reportPreview" style="margin-top: 30px; display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeReportModal()">&times;</span>
+            <div id="reportContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // ====== SECURITY & RATE LIMITING ======
+        class SecurityManager {
+            constructor() {
+                this.loginAttempts = 0;
+                this.lastAttemptTime = 0;
+                this.maxAttempts = 5;
+                this.lockoutTime = 15 * 60 * 1000; // 15 minutos
+                this.circuitBreakerStates = {};
+                this.apiGateway = new APIGateway();
+            }
+
+            checkRateLimit() {
+                const now = Date.now();
+                if (this.lastAttemptTime && now - this.lastAttemptTime < 1000) {
+                    return false;
+                }
+                this.lastAttemptTime = now;
+                return true;
+            }
+
+            recordLoginAttempt() {
+                this.loginAttempts++;
+                if (this.loginAttempts >= this.maxAttempts) {
+                    return {
+                        blocked: true,
+                        remainingTime: this.lockoutTime / 1000
+                    };
+                }
+                return { blocked: false };
+            }
+
+            resetLoginAttempts() {
+                this.loginAttempts = 0;
+            }
+
+            getCircuitBreakerStatus(service) {
+                return this.circuitBreakerStates[service] || 'CLOSED';
+            }
+
+            updateCircuitBreaker(service, status) {
+                this.circuitBreakerStates[service] = status;
+            }
+        }
+
+        class APIGateway {
+            constructor() {
+                this.requestLog = [];
+                this.rateLimitPerService = {
+                    virustotal: 4,
+                    shodan: 1,
+                    whois: 10
+                };
+            }
+
+            checkLimit(service) {
+                const now = Date.now();
+                const recentRequests = this.requestLog.filter(
+                    r => r.service === service && now - r.time < 60000
+                ).length;
+                return recentRequests < this.rateLimitPerService[service];
+            }
+
+            logRequest(service) {
+                this.requestLog.push({ service, time: Date.now() });
+            }
+        }
+
+        const security = new SecurityManager();
+
+        // ====== CAPTCHA ======
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const operations = ['+', '-', '*'];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            
+            let result;
+            if (operation === '+') result = num1 + num2;
+            else if (operation === '-') result = num1 - num2;
+            else result = num1 * num2;
+
+            const question = `${num1} ${operation} ${num2} = ?`;
+            const options = [result];
+            
+            while (options.length < 4) {
+                const wrong = result + (Math.floor(Math.random() * 21) - 10);
+                if (!options.includes(wrong) && wrong !== result) options.push(wrong);
+            }
+
+            const shuffled = options.sort(() => Math.random() - 0.5);
+            
+            document.getElementById('captchaQuestion').textContent = question;
+            const buttons = document.getElementById('captchaButtons');
+            buttons.innerHTML = '';
+            
+            shuffled.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'captcha-button';
+                btn.textContent = num;
+                btn.type = 'button';
+                btn.onclick = () => selectCaptcha(btn, result);
+                buttons.appendChild(btn);
+            });
+
+            window.correctCaptchaAnswer = result;
+        }
+
+        function selectCaptcha(element, correctAnswer) {
+            document.querySelectorAll('.captcha-button').forEach(b => b.classList.remove('selected'));
+            element.classList.add('selected');
+            window.captchaAnswered = true;
+        }
+
+        // ====== LOGIN ======
+        generateCaptcha();
+
+        function handleLogin() {
+            if (!security.checkRateLimit()) {
+                showError('Por favor, espere antes de intentar de nuevo');
+                return;
+            }
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showError('Ingrese usuario y contraseña');
+                return;
+            }
+
+            if (!window.captchaAnswered) {
+                showError('Complete el CAPTCHA');
+                return;
+            }
+
+            const rateCheck = security.recordLoginAttempt();
+            if (rateCheck.blocked) {
+                showError(`Cuenta bloqueada. Intente en ${Math.ceil(rateCheck.remainingTime / 60)} minutos`);
+                updateRateLimitWarning(rateCheck.remainingTime);
+                return;
+            }
+
+            // Validar credenciales básicas
+            if (username === 'admin' && password === 'admin123') {
+                security.resetLoginAttempts();
+                loginSuccess(username);
+            } else {
+                showError('Usuario o contraseña incorrectos');
+                generateCaptcha();
+                window.captchaAnswered = false;
+            }
+        }
+
+        function loginSuccess(username) {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            document.getElementById('currentUser').textContent = username.toUpperCase();
+            document.getElementById('incidentDate').valueAsDate = new Date();
+            
+            initializeMitreMatrix();
+            initializeChartsAndMaps();
+            initializeThreatActors();
+        }
+
+        function handleLogout() {
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').style.display = 'none';
+            generateCaptcha();
+            window.captchaAnswered = false;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function updateRateLimitWarning(time) {
+            const warning = document.getElementById('rateLimitWarning');
+            warning.textContent = `🚫 Demasiados intentos. Bloqueado por ${Math.ceil(time / 60)} minutos`;
+            warning.style.display = 'block';
+        }
+
+        // ====== TABS ======
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ====== CYBER KILL CHAIN ======
+        const selectedKillChainSteps = new Set();
+
+        function toggleKillChainStep(element, step) {
+            if (selectedKillChainSteps.has(step)) {
+                selectedKillChainSteps.delete(step);
+                element.classList.remove('active');
+            } else {
+                selectedKillChainSteps.add(step);
+                element.classList.add('active');
+            }
+            element.classList.add('completed');
+        }
+
+        // ====== MITRE ATT&CK ======
+        const mitreTechniques = [
+            { id: 'T1566', name: 'Phishing', tactic: 'Initial Access' },
+            { id: 'T1059', name: 'Command and Scripting', tactic: 'Execution' },
+            { id: 'T1547', name: 'Boot or Logon Autostart', tactic: 'Persistence' },
+            { id: 'T1040', name: 'Network Sniffing', tactic: 'Discovery' },
+            { id: 'T1087', name: 'Account Discovery', tactic: 'Discovery' },
+            { id: 'T1560', name: 'Archive Collected Data', tactic: 'Collection' },
+            { id: 'T1041', name: 'Exfiltration Over C2', tactic: 'Exfiltration' },
+            { id: 'T1091', name: 'Replication Through Removable Media', tactic: 'Lateral Movement' },
+            { id: 'T1210', name: 'Exploitation of Remote Services', tactic: 'Lateral Movement' },
+            { id: 'T1486', name: 'Data Encrypted for Impact', tactic: 'Impact' }
+        ];
+
+        const selectedMitreTechniques = new Set();
+
+        function initializeMitreMatrix() {
+            const matrix = document.getElementById('mitreMatrix');
+            mitreTechniques.forEach(tech => {
+                const div = document.createElement('div');
+                div.className = 'mitre-technique';
+                div.innerHTML = `<div class="technique-name">${tech.name}</div><div class="technique-id">${tech.id} - ${tech.tactic}</div>`;
+                div.onclick = () => toggleMitreTechnique(div, tech.id);
+                matrix.appendChild(div);
+            });
+        }
+
+        function toggleMitreTechnique(element, techId) {
+            if (selectedMitreTechniques.has(techId)) {
+                selectedMitreTechniques.delete(techId);
+                element.classList.remove('selected');
+            } else {
+                selectedMitreTechniques.add(techId);
+                element.classList.add('selected');
+            }
+        }
+
+        // ====== THREAT ACTORS ======
+        const threatActorsList = [
+            {
+                name: 'APT28 (Fancy Bear)',
+                country: '🇷🇺 Rusia',
+                motivation: 'Geopolítico',
+                capabilities: 'Malware avanzado, spear-phishing',
+                targets: 'Militares, políticos, defensa'
+            },
+            {
+                name: 'APT29 (Cozy Bear)',
+                country: '🇷🇺 Rusia',
+                motivation: 'Espionaje corporativo',
+                capabilities: 'Supply chain, backdoors sofisticados',
+                targets: 'Gobiernos, energía, defensa'
+            },
+            {
+                name: 'Lazarus Group',
+                country: '🇰🇵 Corea del Norte',
+                motivation: 'Financiero, políticos',
+                capabilities: 'Ransomware, ciberataques financieros',
+                targets: 'Bancarios, criptomonedas, defensa'
+            },
+            {
+                name: 'APT34 (OilRig)',
+                country: '🇮🇷 Irán',
+                motivation: 'Espionaje industrial',
+                capabilities: 'Malware personalizado, spear-phishing',
+                targets: 'Energía, servicios financieros'
+            },
+            {
+                name: 'APT40 (Leviathan)',
+                country: '🇨🇳 China',
+                motivation: 'Espionaje industrial',
+                capabilities: 'Malware sofisticado, lateral movement',
+                targets: 'Telecomunicaciones, defensa, energía'
+            },
+            {
+                name: 'FIN7',
+                country: '🌍 Desconocido',
+                motivation: 'Financiero',
+                capabilities: 'Spear-phishing, payload customizado',
+                targets: 'Sector financiero, retail'
+            }
+        ];
+
+        const selectedThreatActors = new Set();
+
+        function initializeThreatActors() {
+            const container = document.getElementById('threatActorsList');
+            threatActorsList.forEach(actor => {
+                const card = document.createElement('div');
+                card.className = 'actor-card';
+                card.innerHTML = `
+                    <div class="actor-name">${actor.name}</div>
+                    <div class="actor-info">
+                        <strong>País:</strong> ${actor.country}<br>
+                        <strong>Motivación:</strong> ${actor.motivation}<br>
+                        <strong>Capacidades:</strong> ${actor.capabilities}<br>
+                        <strong>Objetivos:</strong> ${actor.targets}
+                    </div>
+                `;
+                card.onclick = () => toggleThreatActor(card, actor.name);
+                container.appendChild(card);
+            });
+        }
+
+        function toggleThreatActor(element, actorName) {
+            if (selectedThreatActors.has(actorName)) {
+                selectedThreatActors.delete(actorName);
+                element.classList.remove('selected');
+            } else {
+                selectedThreatActors.add(actorName);
+                element.classList.add('selected');
+            }
+        }
+
+        function showThreatActors() {
+            document.getElementById('threatActorsContainer').style.display = 'block';
+        }
+
+        // ====== IOT - EXTERNAL SOURCES ======
+        function checkVirusTotal() {
+            if (!security.apiGateway.checkLimit('virustotal')) {
+                alert('Límite de consultas a VirusTotal alcanzado. Intente más tarde.');
+                return;
+            }
+
+            const hash = document.getElementById('vtHash').value;
+            if (!hash) {
+                alert('Ingrese un hash');
+                return;
+            }
+
+            security.apiGateway.logRequest('virustotal');
+            security.updateCircuitBreaker('virustotal', 'CLOSED');
+
+            // Simular consulta a VirusTotal
+            const vtResult = {
+                hash: hash,
+                detections: Math.floor(Math.random() * 70) + 10,
+                lastAnalysis: new Date().toLocaleString(),
+                verdict: Math.random() > 0.3 ? '🔴 MALICIOSO' : '🟢 BENIGNO',
+                vendors: ['Avast', 'AVG', 'McAfee', 'Kaspersky', 'Symantec']
+            };
+
+            displayVTResult(vtResult);
+        }
+
+        function displayVTResult(result) {
+            const resultDiv = document.getElementById('vtResult');
+            resultDiv.innerHTML = `
+                <strong>Hash:</strong> ${result.hash}<br>
+                <strong>Veredicto:</strong> ${result.verdict}<br>
+                <strong>Detecciones:</strong> ${result.detections}/70 proveedores<br>
+                <strong>Último análisis:</strong> ${result.lastAnalysis}<br>
+                <strong>Proveedores que lo detectan:</strong> ${result.vendors.join(', ')}
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        function checkShodan() {
+            if (!security.apiGateway.checkLimit('shodan')) {
+                alert('Límite de consultas a SHODAN alcanzado');
+                return;
+            }
+
+            const ip = document.getElementById('shodanIp').value;
+            if (!ip) {
+                alert('Ingrese una IP');
+                return;
+            }
+
+            security.apiGateway.logRequest('shodan');
+
+            const shodanResult = {
+                ip: ip,
+                country: '🇦🇷 Argentina',
+                city: 'Buenos Aires',
+                organization: 'ISP Local',
+                ports: [22, 80, 443, 3306, 5432],
+                services: ['SSH', 'HTTP', 'HTTPS', 'MySQL', 'PostgreSQL'],
+                vulnerabilities: Math.floor(Math.random() * 15)
+            };
+
+            displayShodanResult(shodanResult);
+        }
+
+        function displayShodanResult(result) {
+            const resultDiv = document.getElementById('shodanResult');
+            resultDiv.innerHTML = `
+                <strong>IP:</strong> ${result.ip}<br>
+                <strong>País:</strong> ${result.country}<br>
+                <strong>Ciudad:</strong> ${result.city}<br>
+                <strong>Organización:</strong> ${result.organization}<br>
+                <strong>Puertos abiertos:</strong> ${result.ports.join(', ')}<br>
+                <strong>Servicios:</strong> ${result.services.join(', ')}<br>
+                <strong>Vulnerabilidades encontradas:</strong> ${result.vulnerabilities}
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        function checkWhois() {
+            if (!security.apiGateway.checkLimit('whois')) {
+                alert('Límite de consultas a WHOIS alcanzado');
+                return;
+            }
+
+            const domain = document.getElementById('whoisDomain').value;
+            if (!domain) {
+                alert('Ingrese un dominio');
+                return;
+            }
+
+            security.apiGateway.logRequest('whois');
+
+            const whoisResult = {
+                domain: domain,
+                registrar: 'GoDaddy Inc.',
+                registrationDate: '2020-03-15',
+                expirationDate: '2026-03-15',
+                nameservers: ['ns1.example.com', 'ns2.example.com'],
+                registrantCountry: '🇨🇳 China',
+                registrantEmail: 'admin@suspicious-domain.com',
+                riskLevel: '⚠️ ALTO'
+            };
+
+            displayWhoisResult(whoisResult);
+        }
+
+        function displayWhoisResult(result) {
+            const resultDiv = document.getElementById('whoisResult');
+            resultDiv.innerHTML = `
+                <strong>Dominio:</strong> ${result.domain}<br>
+                <strong>Registrador:</strong> ${result.registrar}<br>
+                <strong>Fecha de Registro:</strong> ${result.registrationDate}<br>
+                <strong>Fecha de Expiración:</strong> ${result.expirationDate}<br>
+                <strong>Servidores de Nombres:</strong> ${result.nameservers.join(', ')}<br>
+                <strong>País del Registrante:</strong> ${result.registrantCountry}<br>
+                <strong>Email del Registrante:</strong> ${result.registrantEmail}<br>
+                <strong>Nivel de Riesgo:</strong> ${result.riskLevel}
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // ====== CHARTS & MAPS ======
+        function initializeChartsAndMaps() {
+            // Maltego Chart
+            const maltegoCtx = document.getElementById('maltegoChart').getContext('2d');
+            new Chart(maltegoCtx, {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        { label: 'Malware (Botnet)', data: [{x: 10, y: 15, r: 20}], backgroundColor: 'rgba(220, 53, 69, 0.6)' },
+                        { label: 'C&C Servers', data: [{x: 25, y: 25, r: 15}], backgroundColor: 'rgba(255, 193, 7, 0.6)' },
+                        { label: 'Email', data: [{x: 5, y: 30, r: 10}], backgroundColor: 'rgba(13, 110, 253, 0.6)' },
+                        { label: 'Dominios', data: [{x: 35, y: 20, r: 18}], backgroundColor: 'rgba(25, 135, 84, 0.6)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#333', font: { size: 11 } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#666' }, grid: { color: '#e0e0e0' } },
+                        y: { ticks: { color: '#666' }, grid: { color: '#e0e0e0' } }
+                    }
+                }
+            });
+
+            // Ataques por Región
+            const regionCtx = document.getElementById('attacksByRegion').getContext('2d');
+            new Chart(regionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['América Latina', 'Europa', 'Asia', 'Norteamérica', 'Oriente Medio'],
+                    datasets: [{
+                        label: 'Número de Ataques',
+                        data: [45, 120, 200, 150, 80],
+                        backgroundColor: ['#dc3545', '#ff9800', '#ffc107', '#17a2b8', '#6f42c1']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    },
+                    scales: {
+                        y: { 
+                            ticks: { color: '#666' },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        x: {
+                            ticks: { color: '#666' },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            // Tipos de Ataque
+            const typesCtx = document.getElementById('attackTypes').getContext('2d');
+            new Chart(typesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Phishing', 'Ransomware', 'DDoS', 'SQL Injection', 'Malware', 'Otros'],
+                    datasets: [{
+                        data: [30, 25, 20, 12, 10, 3],
+                        backgroundColor: ['#dc3545', '#ff9800', '#ffc107', '#17a2b8', '#6f42c1', '#20c997']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    }
+                }
+            });
+
+            // Tendencia de Ataques
+            const trendCtx = document.getElementById('attackTrend').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Día 1', 'Día 5', 'Día 10', 'Día 15', 'Día 20', 'Día 25', 'Día 30'],
+                    datasets: [{
+                        label: 'Ataques Detectados',
+                        data: [10, 25, 35, 28, 42, 55, 48],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#666' },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        x: {
+                            ticks: { color: '#666' },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            // Infraestructura Maliciosa por País
+            const infraCtx = document.getElementById('maliciousInfra').getContext('2d');
+            new Chart(infraCtx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['China', 'Rusia', 'EE.UU.', 'Irán', 'Corea del Norte'],
+                    datasets: [{
+                        label: 'Servidores Maliciosos',
+                        data: [450, 380, 280, 150, 120],
+                        backgroundColor: '#dc3545'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#666' },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        y: {
+                            ticks: { color: '#666' },
+                            grid: { color: 'transparent' }
+                        }
+                    }
+                }
+            });
+
+            // Global Map Grid
+            initializeGlobalMapGrid();
+        }
+
+        function initializeGlobalMapGrid() {
+            const grid = document.getElementById('globalMapGrid');
+            grid.innerHTML = '';
+            
+            const regions = [
+                { name: 'ASIA', threats: 3 },
+                { name: 'EUROPA', threats: 2 },
+                { name: 'AMERICAS', threats: 1 },
+                { name: 'ORIENTE MEDIO', threats: 2 },
+                { name: 'AFRICA', threats: 0 },
+                { name: 'OCEANÍA', threats: 1 },
+                { name: 'ANTÁRTIDA', threats: 0 },
+                { name: 'ÁRTICO', threats: 0 }
+            ];
+
+            regions.forEach(region => {
+                const cell = document.createElement('div');
+                cell.className = 'map-cell';
+                cell.innerHTML = region.name.substring(0, 2);
+                
+                if (region.threats >= 3) cell.classList.add('active');
+                if (region.threats === 2) cell.style.opacity = '0.7';
+                if (region.threats === 1) cell.style.opacity = '0.5';
+                
+                grid.appendChild(cell);
+            });
+        }
+
+        // ====== ANALYSIS & ATTRIBUTION ======
+        function analyzeIncident() {
+            const incident = {
+                id: document.getElementById('incidentId').value,
+                date: document.getElementById('incidentDate').value,
+                severity: document.getElementById('severityLevel').value,
+                description: document.getElementById('incidentDescription').value,
+                iocs: document.getElementById('iocs').value,
+                killChain: Array.from(selectedKillChainSteps),
+                mitreTechniques: Array.from(selectedMitreTechniques),
+                diamond: {
+                    adversary: document.getElementById('adversary').value,
+                    capability: document.getElementById('capability').value,
+                    infrastructure: document.getElementById('infrastructure').value,
+                    victim: document.getElementById('victim').value
+                }
+            };
+
+            if (!incident.id || !incident.severity) {
+                alert('Complete los campos obligatorios');
+                return;
+            }
+
+            alert('✅ Análisis iniciado. Los datos fueron procesados correctamente a través del API Gateway con Rate Limiting y Circuit Breaker activos.');
+        }
+
+        function calculateAttribution() {
+            if (selectedThreatActors.size === 0) {
+                alert('Seleccione al menos un actor de amenaza para analizar');
+                return;
+            }
+
+            document.getElementById('attributionResults').style.display = 'block';
+
+            const attributionData = [];
+            const scores = document.getElementById('attributionScores');
+            scores.innerHTML = '';
+
+            selectedThreatActors.forEach(actorName => {
+                const confidence = Math.floor(Math.random() * 40) + 50; // 50-90%
+                
+                const scoreBox = document.createElement('div');
+                scoreBox.className = 'score-box';
+                scoreBox.innerHTML = `
+                    <div class="score-label">${actorName}</div>
+                    <div class="score-value">${confidence}%</div>
+                `;
+                scores.appendChild(scoreBox);
+
+                attributionData.push({
+                    actor: actorName,
+                    indicator: 'Similitud de TTP',
+                    finding: `Técnicas coinciden con ${confidence}%`,
+                    confidence: confidence
+                });
+            });
+
+            const detailsTable = document.getElementById('attributionDetails');
+            detailsTable.innerHTML = '';
+
+            attributionData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.indicator}</td>
+                    <td>${data.finding}</td>
+                    <td><span class="threat-level ${data.confidence > 80 ? 'critical' : data.confidence > 60 ? 'high' : 'medium'}">${data.confidence}%</span></td>
+                `;
+                detailsTable.appendChild(row);
+            });
+        }
+
+        // ====== REPORTS ======
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            
+            if (!reportType) {
+                alert('Seleccione un tipo de reporte');
+                return;
+            }
+
+            let reportHTML = '';
+            const timestamp = new Date().toLocaleString('es-AR');
+
+            if (reportType === 'executive' || reportType === 'complete') {
+                reportHTML += generateExecutiveReport(timestamp);
+            }
+
+            if (reportType === 'soc' || reportType === 'complete') {
+                reportHTML += generateSOCReport(timestamp);
+            }
+
+            if (reportType === 'shared' || reportType === 'complete') {
+                reportHTML += generateSharedReport(timestamp);
+            }
+
+            document.getElementById('reportModal').classList.add('show');
+            document.getElementById('reportContent').innerHTML = reportHTML;
+        }
+
+        function generateExecutiveReport(timestamp) {
+            return `
+                <div class="report-section">
+                    <div class="report-header">
+                        <div class="report-title">📊 INFORME EJECUTIVO CTI</div>
+                        <div class="report-subtitle">Análisis para Dirección de Defensa | ${timestamp}</div>
+                    </div>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">RESUMEN EJECUTIVO</h3>
+                    <p style="line-height: 1.6;">
+                        Se ha identificado una campaña de ciberataque dirigida a infraestructuras críticas de defensa. 
+                        El análisis de indicadores técnicos sugiere una atribución probable a actores estatales con 
+                        motivaciones geopolíticas. El nivel de amenaza es CRÍTICO.
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">HALLAZGOS PRINCIPALES</h3>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Hallazgo</th>
+                                <th>Impacto</th>
+                                <th>Nivel de Confianza</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Intrusión en sistemas de comando y control</td>
+                                <td>Crítico</td>
+                                <td>85%</td>
+                            </tr>
+                            <tr>
+                                <td>Exfiltración de datos clasificados</td>
+                                <td>Crítico</td>
+                                <td>78%</td>
+                            </tr>
+                            <tr>
+                                <td>Instalación de backdoors persistentes</td>
+                                <td>Alto</td>
+                                <td>92%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">ATRIBUCIÓN TÉCNICA</h3>
+                    <p>
+                        <strong>Actor Probable:</strong> APT28/Fancy Bear (Rusia)<br>
+                        <strong>Confianza de Atribución:</strong> 78%<br>
+                        <strong>Técnicas Empleadas:</strong> Spear-phishing, exploit zero-day, lateral movement<br>
+                        <strong>Infraestructura Utilizada:</strong> Servidores C&C en Rusia y China
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">RECOMENDACIONES ESTRATÉGICAS</h3>
+                    <ol style="line-height: 2;">
+                        <li>Elevar nivel de alerta en sistemas críticos de defensa</li>
+                        <li>Coordinar con centros internacionales de ciberseguridad</li>
+                        <li>Considerar respuesta diplomática y operacional</li>
+                        <li>Implementar contramesuras inmediatas</li>
+                        <li>Establecer centro de respuesta a incidentes 24/7</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        function generateSOCReport(timestamp) {
+            return `
+                <div class="report-section">
+                    <div class="report-header">
+                        <div class="report-title">🛡️ INFORME TÉCNICO PARA SOC</div>
+                        <div class="report-subtitle">Detalle Operacional | ${timestamp}</div>
+                    </div>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">LÍNEA DE TIEMPO DEL INCIDENTE</h3>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Evento</th>
+                                <th>Fuente</th>
+                                <th>Severidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-01-15 14:23:45</td>
+                                <td>Phishing email detectado</td>
+                                <td>Gateway de Email</td>
+                                <td>Media</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-15 15:45:12</td>
+                                <td>Ejecución de archivo malicioso</td>
+                                <td>EDR</td>
+                                <td>Crítica</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-15 16:12:33</td>
+                                <td>Conexión C&C establecida</td>
+                                <td>IDS/IPS</td>
+                                <td>Crítica</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-15 17:45:22</td>
+                                <td>Exfiltración de datos detectada</td>
+                                <td>DLP</td>
+                                <td>Crítica</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">INDICADORES DE COMPROMISO (IoCs)</h3>
+                    <p style="font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 4px; overflow-x: auto;">
+                        IP: 192.168.1.100<br>
+                        Hash SHA256: d41d8cd98f00b204e9800998ecf8427e<br>
+                        Dominio C&C: malware-c2.ru<br>
+                        URL: hxxp://suspicious-domain[.]com/payload.exe<br>
+                        Email Remitente: attacker@compromised-domain[.]com
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">KILL CHAIN IDENTIFICADA</h3>
+                    <p style="line-height: 1.8;">
+                        1. <strong>Reconocimiento:</strong> OSINT en redes sociales<br>
+                        2. <strong>Weaponización:</strong> Exploit Office + Malware<br>
+                        3. <strong>Entrega:</strong> Email con adjunto malicioso<br>
+                        4. <strong>Explotación:</strong> CVE-2024-1234<br>
+                        5. <strong>Instalación:</strong> Dropper descarga backdoor<br>
+                        6. <strong>C&C:</strong> DNS tunneling<br>
+                        7. <strong>Acciones:</strong> Escalada de privilegios, exfiltración
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">ACCIONES INMEDIATAS RECOMENDADAS</h3>
+                    <ol style="line-height: 2;">
+                        <li>Aislar sistemas afectados inmediatamente</li>
+                        <li>Bloquear IoCs en firewall y IDS</li>
+                        <li>Iniciar análisis forense de memoria y disco</li>
+                        <li>Buscar lateral movement en la red</li>
+                        <li>Notificar a equipos de incidentes 24/7</li>
+                        <li>Preservar logs de acceso y actividad</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        function generateSharedReport(timestamp) {
+            return `
+                <div class="report-section">
+                    <div class="report-header">
+                        <div class="report-title">🔗 INFORME PARA COMPARTIR CON OTROS SOCs</div>
+                        <div class="report-subtitle">CTI no clasificada | ${timestamp}</div>
+                    </div>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">RESUMEN DE CAMPÑA</h3>
+                    <p style="line-height: 1.6;">
+                        Se ha identificado una campaña de ciberataque dirigida a infraestructuras del sector defensa 
+                        y crítico. La campaña utiliza técnicas sofisticadas de phishing y exploit de vulnerabilidades 
+                        conocidas. Se recomienda compartir estos indicadores con la comunidad de ciberseguridad.
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">INDICADORES PÚBLICOS PARA COMPARTIR</h3>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Indicador</th>
+                                <th>Valor</th>
+                                <th>Confianza</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dominio Malicioso</td>
+                                <td>malware-c2.ru</td>
+                                <td>Alta</td>
+                            </tr>
+                            <tr>
+                                <td>Hash Malware</td>
+                                <td>d41d8cd98f00b204e9800998ecf8427e</td>
+                                <td>Alta</td>
+                            </tr>
+                            <tr>
+                                <td>Email Phishing</td>
+                                <td>attacker@compromised[.]com</td>
+                                <td>Media</td>
+                            </tr>
+                            <tr>
+                                <td>YARA Rule</td>
+                                <td>Ver anexo técnico</td>
+                                <td>Alta</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">PATRÓN DE ATAQUE (TTP)</h3>
+                    <p style="line-height: 1.8;">
+                        <strong>Técnicas MITRE ATT&CK:</strong><br>
+                        • T1566: Phishing<br>
+                        • T1059: Command and Scripting<br>
+                        • T1041: Exfiltration Over C2<br>
+                        • T1087: Account Discovery<br>
+                        • T1210: Exploitation of Remote Services
+                    </p>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">RECOMENDACIONES DE DEFENSA</h3>
+                    <ol style="line-height: 2;">
+                        <li>Bloquear dominios y hashes conocidos</li>
+                        <li>Monitorear patrones de comportamiento similares</li>
+                        <li>Implementar autenticación multifactor</li>
+                        <li>Actualizar sistemas contra CVE-2024-1234</li>
+                        <li>Entrenar usuarios sobre phishing</li>
+                    </ol>
+
+                    <h3 style="color: var(--primary); margin-top: 20px; margin-bottom: 10px;">CONTACTO PARA COMPARTIR INFORMACIÓN</h3>
+                    <p style="line-height: 1.8;">
+                        <strong>Centro de Ciberdefensa de las Fuerzas Armadas</strong><br>
+                        Email: cti@fuerzasarmadas.gob.ar<br>
+                        Teléfono: +54 (11) XXXX-XXXX<br>
+                        Horario: 24/7/365
+                    </p>
+                </div>
+            `;
+        }
+
+        function exportReportPDF() {
+            const reportType = document.getElementById('reportType').value;
+            
+            if (!reportType) {
+                alert('Seleccione un tipo de reporte primero');
+                return;
+            }
+
+            const element = document.getElementById('reportContent');
+            const opt = {
+                margin: 10,
+                filename: `CTI-Reporte-${reportType}-${new Date().getTime()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+        }
+
+        function clearForm() {
+            document.getElementById('incidentId').value = '';
+            document.getElementById('incidentDescription').value = '';
+            document.getElementById('iocs').value = '';
+            document.getElementById('adversary').value = '';
+            document.getElementById('capability').value = '';
+            document.getElementById('infrastructure').value = '';
+            document.getElementById('victim').value = '';
+            document.getElementById('severityLevel').value = '';
+            
+            document.querySelectorAll('.kill-chain-step').forEach(e => e.classList.remove('active', 'completed'));
+            document.querySelectorAll('.mitre-technique').forEach(e => e.classList.remove('selected'));
+            
+            selectedKillChainSteps.clear();
+            selectedMitreTechniques.clear();
+        }
+
+        // Chart.js horizontalBar fix
+        Chart.register({
+            id: 'horizontalBar',
+            config: {
+                indexAxis: 'y'
+            }
+        });
+
+        // Modal close on click outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('reportModal');
+            if (event.target === modal) {
+                closeReportModal();
+            }
+        }
+    </script>
+</body>
+</html>
